@@ -2,4 +2,6 @@
 
 namespace GenialDigitalNusantara\LaragitVersion;
 
-class LaragitVersionClass {}
+class LaragitVersionClass
+{
+}
