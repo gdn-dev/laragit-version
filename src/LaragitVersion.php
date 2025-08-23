@@ -157,10 +157,23 @@ class LaragitVersion
             return Cache::get($cacheKey);
         }
 
+        // Validate Git availability and repository
+        if (!$this->isGitAvailable()) {
+            throw new TagNotFound('Git is not available on this system.');
+        }
+        
+        if (!$this->isGitRepository()) {
+            throw new TagNotFound('Current directory is not a Git repository.');
+        }
+        
+        if (!$this->hasGitTags()) {
+            throw new TagNotFound('No Git tags found in the repository.');
+        }
+
         $version = $this->getVersion();
         
         if (empty($version)) {
-            throw new TagNotFound('No Git tags found in the repository.');
+            throw new TagNotFound('No valid version tags found in the repository.');
         }
 
         Cache::put($cacheKey, $version, 300); // Cache for 5 minutes
@@ -298,8 +311,34 @@ class LaragitVersion
      */
     public function isGitRepository(): bool
     {
-        $result = $this->shell('git rev-parse --git-dir');
+        $result = $this->shell($this->commands->checkGitRepository());
         return !empty($result) && !str_contains($result, 'not a git repository');
+    }
+
+    /**
+     * Check if Git is available on the system.
+     *
+     * @return bool
+     */
+    public function isGitAvailable(): bool
+    {
+        $result = $this->shell($this->commands->checkGitAvailable());
+        return !empty($result) && str_contains($result, 'git version');
+    }
+
+    /**
+     * Check if repository has any tags.
+     *
+     * @return bool
+     */
+    public function hasGitTags(): bool
+    {
+        if (!$this->isGitRepository()) {
+            return false;
+        }
+        
+        $result = $this->shell($this->commands->hasAnyTags());
+        return !empty($result) && intval(trim($result)) > 0;
     }
 
     /**

@@ -5,6 +5,26 @@ namespace GenialDigitalNusantara\LaragitVersion\Helper;
 class GitCommands
 {
     /**
+     * Check if current directory is a Git repository.
+     *
+     * @return string
+     */
+    public function checkGitRepository(): string
+    {
+        return "git rev-parse --git-dir";
+    }
+
+    /**
+     * Check if Git is available on the system.
+     *
+     * @return string
+     */
+    public function checkGitAvailable(): string
+    {
+        return "git --version";
+    }
+
+    /**
      * Get the URL of the repository.
      *
      * @return string
@@ -79,7 +99,7 @@ class GitCommands
      */
     public function getLatestVersionOnLocal(): string
     {
-        return "git describe --tags --abbrev=0";
+        return "git describe --tags --abbrev=0 2>/dev/null || echo ''";
     }
 
     /**
@@ -89,7 +109,27 @@ class GitCommands
      */
     protected function getCurrentVersionOnLocal(): string
     {
-        return "git describe";
+        return "git describe --tags 2>/dev/null || echo ''";
+    }
+
+    /**
+     * Get all tags from the repository.
+     *
+     * @return string
+     */
+    public function getAllTags(): string
+    {
+        return "git tag -l --sort=-version:refname";
+    }
+
+    /**
+     * Check if there are any tags in the repository.
+     *
+     * @return string
+     */
+    public function hasAnyTags(): string
+    {
+        return "git tag -l | wc -l";
     }
 
     /**
@@ -111,6 +151,18 @@ class GitCommands
      */
     public function getLatestVersionOnRemote(string $repository): string
     {
-        return "git ls-remote $repository | grep tags/ | grep -v {} | cut -d / -f 3 | sort --version-sort | tail -1";
+        return "git ls-remote $repository | grep 'refs/tags/' | grep -v '{}' | cut -d '/' -f 3 | sort --version-sort | tail -1 2>/dev/null || echo ''";
+    }
+
+    /**
+     * Validate remote repository accessibility.
+     *
+     * @param string $repository The URL of the remote repository.
+     *
+     * @return string
+     */
+    public function validateRemoteRepository(string $repository): string
+    {
+        return "git ls-remote --exit-code $repository HEAD";
     }
 }
