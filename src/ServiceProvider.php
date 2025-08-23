@@ -94,8 +94,9 @@ class ServiceProvider extends IlluminateServiceProvider
      */
     protected function registerBladeDirective(): void
     {
-        Blade::directive('laragitVersion', function ($format = Constants::DEFAULT_FORMAT) {
-            return "<?php echo app('gdn-dev.laragit-version')->show($format); ?>";
+        Blade::directive('laragitVersion', function ($format = null) {
+            $formatString = $format ? $format : "'" . Constants::DEFAULT_FORMAT . "'";
+            return "<?php echo app('gdn-dev.laragit-version')->show($formatString); ?>";
         });
     }
 
@@ -150,6 +151,7 @@ class ServiceProvider extends IlluminateServiceProvider
      */
     public function boot(): void
     {
+        $this->loadConfig();
         $this->publishConfiguration();
         $this->registerBladeDirective();
     }
@@ -162,7 +164,18 @@ class ServiceProvider extends IlluminateServiceProvider
      */
     public function register(): void
     {
+        $this->loadConfig();
         $this->registerService();
         $this->registerCommands();
+    }
+
+    /**
+     * Get the services provided by the provider.
+     *
+     * @return array
+     */
+    public function provides(): array
+    {
+        return ['gdn-dev.laragit-version'];
     }
 }
