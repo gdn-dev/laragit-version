@@ -55,4 +55,37 @@ class TagNotFound extends \Exception
     {
         return new static("Remote repository '$repository' is not accessible or does not exist.");
     }
+
+    /**
+     * Create a new TagNotFound exception for missing VERSION file.
+     *
+     * @param string $filePath
+     * @return static
+     */
+    public static function versionFileNotFound(string $filePath): static
+    {
+        return new static("VERSION file not found at path: '$filePath'. Please create a VERSION file or check the path.");
+    }
+
+    /**
+     * Create a new TagNotFound exception for invalid VERSION file.
+     *
+     * @param string $filePath
+     * @return static
+     */
+    public static function invalidVersionFile(string $filePath): static
+    {
+        return new static("VERSION file at path '$filePath' contains invalid content. Please ensure it contains a valid version string.");
+    }
+
+    /**
+     * Create a new TagNotFound exception for empty VERSION file.
+     *
+     * @param string $filePath
+     * @return static
+     */
+    public static function emptyVersionFile(string $filePath): static
+    {
+        return new static("VERSION file at path '$filePath' is empty. Please add a version string to the file.");
+    }
 }

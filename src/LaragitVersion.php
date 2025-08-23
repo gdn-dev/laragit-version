@@ -353,9 +353,10 @@ class LaragitVersion
             $commit = $this->getCommitInfo();
             $branch = $this->getCurrentBranch();
             $versionParts = $this->parseVersion($version);
+            $source = $this->config->get('version.source');
 
             return match ($format) {
-                Constants::FORMAT_FULL => "Version {$versionParts['clean']} (commit {$commit['short']})",
+                Constants::FORMAT_FULL => $this->getFullFormat($versionParts, $commit, $source),
                 Constants::FORMAT_COMPACT => "v{$versionParts['clean']}",
                 Constants::FORMAT_VERSION => $versionParts['full'],
                 Constants::FORMAT_VERSION_ONLY => $versionParts['clean'],
@@ -372,6 +373,23 @@ class LaragitVersion
 
             return 'No version available';
         }
+    }
+
+    /**
+     * Get full format string based on source type.
+     *
+     * @param array $versionParts
+     * @param array $commit
+     * @param string $source
+     * @return string
+     */
+    protected function getFullFormat(array $versionParts, array $commit, string $source): string
+    {
+        if ($source === Constants::VERSION_SOURCE_FILE) {
+            return "Version {$versionParts['clean']}";
+        }
+        
+        return "Version {$versionParts['clean']} (commit {$commit['short']})";
     }
 
     /**
@@ -454,19 +472,46 @@ class LaragitVersion
             $commit = $this->getCommitInfo();
             $branch = $this->getCurrentBranch();
             $versionParts = $this->parseVersion($version);
+            $source = $this->config->get('version.source');
 
-            return [
+            $info = [
                 'version' => $versionParts,
                 'commit' => $commit,
                 'branch' => $branch,
-                'repository_url' => $this->getRepositoryUrl(),
-                'is_git_repo' => $this->isGitRepository(),
+                'source' => $source,
             ];
+            
+            // Add source-specific information
+            if ($source === Constants::VERSION_SOURCE_FILE) {
+                $fileName = $this->config->get('version.version_file', Constants::DEFAULT_VERSION_FILE);
+                $filePath = $this->fileCommands->getVersionFilePath($this->getBasePath(), $fileName);
+                $info['version_file'] = $fileName;
+                $info['version_file_path'] = $filePath;
+                $info['version_file_exists'] = $this->fileCommands->fileExists($filePath);
+            } else {
+                $info['repository_url'] = $this->getRepositoryUrl();
+                $info['is_git_repo'] = $this->isGitRepository();
+            }
+
+            return $info;
         } catch (TagNotFound $e) {
-            return [
+            $source = $this->config->get('version.source');
+            $info = [
                 'error' => $e->getMessage(),
-                'is_git_repo' => $this->isGitRepository(),
+                'source' => $source,
             ];
+            
+            if ($source === Constants::VERSION_SOURCE_FILE) {
+                $fileName = $this->config->get('version.version_file', Constants::DEFAULT_VERSION_FILE);
+                $filePath = $this->fileCommands->getVersionFilePath($this->getBasePath(), $fileName);
+                $info['version_file'] = $fileName;
+                $info['version_file_path'] = $filePath;
+                $info['version_file_exists'] = $this->fileCommands->fileExists($filePath);
+            } else {
+                $info['is_git_repo'] = $this->isGitRepository();
+            }
+            
+            return $info;
         }
     }
 }
