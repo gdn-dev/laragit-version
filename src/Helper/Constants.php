@@ -63,4 +63,87 @@ class Constants
     public const CACHE_KEY_COMMIT = 'laragit_commit';
 
     public const MATCHER = '/^(?P<label>[v|V]*[er]*[sion]*)[\.|\s]*(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/';
+
+    /**
+     * Get all available format constants
+     *
+     * @return array<string, string>
+     */
+    public static function getAllFormats(): array
+    {
+        return [
+            'full' => self::FORMAT_FULL,
+            'compact' => self::FORMAT_COMPACT,
+            'version' => self::FORMAT_VERSION,
+            'version-only' => self::FORMAT_VERSION_ONLY,
+            'major' => self::FORMAT_MAJOR,
+            'minor' => self::FORMAT_MINOR,
+            'patch' => self::FORMAT_PATCH,
+            'commit' => self::FORMAT_COMMIT,
+            'prerelease' => self::FORMAT_PRERELEASE,
+            'build' => self::FORMAT_BUILD,
+        ];
+    }
+
+    /**
+     * Get all available version source constants
+     *
+     * @return array<string, string>
+     */
+    public static function getAllVersionSources(): array
+    {
+        return [
+            'git-local' => self::VERSION_SOURCE_GIT_LOCAL,
+            'git-remote' => self::VERSION_SOURCE_GIT_REMOTE,
+            'file' => self::VERSION_SOURCE_FILE,
+        ];
+    }
+
+    /**
+     * Check if a format is valid
+     *
+     * @param string $format
+     * @return bool
+     */
+    public static function isValidFormat(string $format): bool
+    {
+        $validFormats = array_values(self::getAllFormats());
+        return in_array($format, $validFormats, true);
+    }
+
+    /**
+     * Check if a version source is valid
+     *
+     * @param string $source
+     * @return bool
+     */
+    public static function isValidVersionSource(string $source): bool
+    {
+        $validSources = array_values(self::getAllVersionSources());
+        return in_array($source, $validSources, true);
+    }
+
+    /**
+     * Get cache keys
+     *
+     * @return array<string, string>
+     */
+    public static function getCacheKeys(): array
+    {
+        return [
+            'version' => self::CACHE_KEY_VERSION,
+            'commit' => self::CACHE_KEY_COMMIT,
+        ];
+    }
+
+    /**
+     * Validate version string against semantic version pattern
+     *
+     * @param string $version
+     * @return bool
+     */
+    public static function isValidVersionFormat(string $version): bool
+    {
+        return preg_match(self::MATCHER, $version) === 1;
+    }
 }
