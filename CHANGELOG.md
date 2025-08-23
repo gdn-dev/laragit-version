@@ -5,6 +5,12 @@ All notable changes to `laragit-version` will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **VERSION File Support**: Read version information from VERSION files as alternative to Git
+- VERSION_SOURCE_FILE constant for file-based version detection
+- FileCommands helper class for file operations and validation
+- Comprehensive VERSION file validation and error handling
+- Support for custom VERSION file paths via configuration
+- Enhanced getVersionInfo() with source-specific metadata
 - Complete core API implementation with `show()`, `getCurrentVersion()`, and `getVersionInfo()` methods
 - Comprehensive Git command validation and error handling
 - Enhanced exception handling with specific error contexts
@@ -13,7 +19,7 @@ All notable changes to `laragit-version` will be documented in this file.
 - Multiple version format options (full, compact, version-only, etc.)
 - Custom format string support with placeholders
 - Remote repository support for version detection
-- Comprehensive unit test coverage
+- Comprehensive unit test coverage (31+ tests)
 - Detailed documentation and usage examples
 
 ### Fixed
