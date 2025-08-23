@@ -109,17 +109,19 @@ class FileCommands
         // Remove common whitespace and line breaks
         $version = trim($content);
         
-        // Remove multiple spaces
-        $version = preg_replace('/\s+/', ' ', $version);
-        
         // Handle multiline files - take first non-empty line
         $lines = explode("\n", $version);
         foreach ($lines as $line) {
             $line = trim($line);
             if (!empty($line)) {
+                // Remove multiple spaces within the line
+                $line = preg_replace('/\s+/', ' ', $line);
                 return $line;
             }
         }
+        
+        // Fallback: remove multiple spaces
+        $version = preg_replace('/\s+/', ' ', $version);
         
         return $version;
     }
