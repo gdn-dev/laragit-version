@@ -15,11 +15,12 @@
         }
     ],
     "require": {
-        "php": "^8.4"
+        "php": "^8.0",
+        "laravel/framework": "^9.0"
     },
     "require-dev": {
-        "pestphp/pest": "^3.0",
-        "friendsofphp/php-cs-fixer": "^3.21.1",
+        "pestphp/pest": "^1.0 || ^2.0",
+        "friendsofphp/php-cs-fixer": "^3.0",
         "spatie/ray": "^1.28"
     },
     "autoload": {
@@ -34,7 +35,7 @@
     },
     "scripts": {
         "test": "vendor/bin/pest",
-            "test-coverage": "vendor/bin/pest --coverage",
+        "test-coverage": "vendor/bin/pest --coverage",
         "format": "vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php --allow-risky=yes"
     },
     "config": {

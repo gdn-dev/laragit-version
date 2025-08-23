@@ -26,12 +26,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Setup PHP
+      - name: Setup PHP with Xdebug
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
           extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick, fileinfo
-          coverage: none
+          coverage: xdebug
 
       - name: Setup problem matchers
         run: |
@@ -44,5 +44,10 @@ jobs:
       - name: List Installed Dependencies
         run: composer show -D
 
-      - name: Execute tests
-        run: vendor/bin/pest --ci
+      - name: Run tests
+        run: vendor/bin/pest --ci --coverage-clover=coverage.xml --min=80
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v4
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
