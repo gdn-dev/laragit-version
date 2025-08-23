@@ -6,6 +6,7 @@ use GenialDigitalNusantara\LaragitVersion\Exceptions\TagNotFound;
 use GenialDigitalNusantara\LaragitVersion\Helper\Constants;
 use GenialDigitalNusantara\LaragitVersion\Helper\GitCommands;
 use Illuminate\Config\Repository;
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -17,9 +18,9 @@ class LaragitVersion
     /**
      * The Laravel application instance.
      *
-     * @var Application
+     * @var Container
      */
-    protected Application $app;
+    protected Container $app;
 
     /** @var Repository */
     protected Repository $config;
@@ -28,9 +29,9 @@ class LaragitVersion
     protected GitCommands $commands;
 
     /**
-     * @param Application|null $app
+     * @param Container|null $app
      */
-    public function __construct(?Application $app)
+    public function __construct(?Container $app = null)
     {
         if (! $app) {
             $app = app();
