@@ -161,12 +161,12 @@ class LaragitVersion
     public function getCommitHash(): string
     {
         $source = $this->config->get('version.source');
-        
+
         // For file source, return empty string since there's no commit hash
         if ($source === Constants::VERSION_SOURCE_FILE) {
             return '';
         }
-        
+
         return $source === Constants::VERSION_SOURCE_GIT_LOCAL ?
             $this->shell($this->commands->getCommitOnLocal()) :
             $this->shell($this->commands->getLatestCommitOnRemote($this->getRepositoryUrl()));
@@ -175,7 +175,7 @@ class LaragitVersion
     protected function getVersion(): string
     {
         $source = $this->config->get('version.source');
-        
+
         return match ($source) {
             Constants::VERSION_SOURCE_GIT_LOCAL => $this->shell($this->commands->getLatestVersionOnLocal()),
             Constants::VERSION_SOURCE_GIT_REMOTE => $this->getVersionFromRemote(),
@@ -195,7 +195,7 @@ class LaragitVersion
         if (! $this->validateRemoteRepository($repositoryUrl)) {
             throw TagNotFound::remoteRepositoryUnavailable($repositoryUrl);
         }
-        
+
         return $this->shell($this->commands->getLatestVersionOnRemote($repositoryUrl));
     }
 
@@ -208,21 +208,21 @@ class LaragitVersion
     {
         $fileName = $this->config->get('version.version_file', Constants::DEFAULT_VERSION_FILE);
         $filePath = $this->fileCommands->getVersionFilePath($this->getBasePath(), $fileName);
-        
+
         if (! $this->fileCommands->fileExists($filePath)) {
             throw TagNotFound::versionFileNotFound($filePath);
         }
-        
+
         if (! $this->fileCommands->isValidVersionFile($filePath)) {
             throw TagNotFound::invalidVersionFile($filePath);
         }
-        
+
         $version = $this->fileCommands->getVersionFromFile($filePath);
-        
+
         if (empty($version)) {
             throw TagNotFound::emptyVersionFile($filePath);
         }
-        
+
         return $this->fileCommands->parseVersionContent($version);
     }
 
@@ -241,7 +241,7 @@ class LaragitVersion
         }
 
         $source = $this->config->get('version.source');
-        
+
         // For file source, skip Git validation
         if ($source === Constants::VERSION_SOURCE_FILE) {
             $version = $this->getVersion();
@@ -279,12 +279,12 @@ class LaragitVersion
     public function getCurrentBranch(): string
     {
         $source = $this->config->get('version.source');
-        
+
         // For file source, return configured branch or default
         if ($source === Constants::VERSION_SOURCE_FILE) {
             return $this->config->get('version.branch', Constants::DEFAULT_BRANCH);
         }
-        
+
         return $this->shell($this->commands->getCurrentBranch());
     }
 
@@ -388,7 +388,7 @@ class LaragitVersion
         if ($source === Constants::VERSION_SOURCE_FILE) {
             return "Version {$versionParts['clean']}";
         }
-        
+
         return "Version {$versionParts['clean']} (commit {$commit['short']})";
     }
 
@@ -480,7 +480,7 @@ class LaragitVersion
                 'branch' => $branch,
                 'source' => $source,
             ];
-            
+
             // Add source-specific information
             if ($source === Constants::VERSION_SOURCE_FILE) {
                 $fileName = $this->config->get('version.version_file', Constants::DEFAULT_VERSION_FILE);
@@ -500,7 +500,7 @@ class LaragitVersion
                 'error' => $e->getMessage(),
                 'source' => $source,
             ];
-            
+
             if ($source === Constants::VERSION_SOURCE_FILE) {
                 $fileName = $this->config->get('version.version_file', Constants::DEFAULT_VERSION_FILE);
                 $filePath = $this->fileCommands->getVersionFilePath($this->getBasePath(), $fileName);
@@ -510,7 +510,7 @@ class LaragitVersion
             } else {
                 $info['is_git_repo'] = $this->isGitRepository();
             }
-            
+
             return $info;
         }
     }

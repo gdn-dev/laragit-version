@@ -34,11 +34,11 @@ class FileCommands
      */
     public function readFile(string $filePath): string|false
     {
-        if (!$this->fileExists($filePath)) {
+        if (! $this->fileExists($filePath)) {
             return false;
         }
 
-        if (!$this->isReadable($filePath)) {
+        if (! $this->isReadable($filePath)) {
             return false;
         }
 
@@ -54,7 +54,7 @@ class FileCommands
     public function getVersionFromFile(string $filePath): string
     {
         $content = $this->readFile($filePath);
-        
+
         if ($content === false) {
             return '';
         }
@@ -72,7 +72,7 @@ class FileCommands
     public function isValidVersionFile(string $filePath): bool
     {
         $version = $this->getVersionFromFile($filePath);
-        
+
         if (empty($version)) {
             return false;
         }
@@ -108,21 +108,22 @@ class FileCommands
     {
         // Remove common whitespace and line breaks
         $version = trim($content);
-        
+
         // Handle multiline files - take first non-empty line
         $lines = explode("\n", $version);
         foreach ($lines as $line) {
             $line = trim($line);
-            if (!empty($line)) {
+            if (! empty($line)) {
                 // Remove multiple spaces within the line
                 $line = preg_replace('/\s+/', ' ', $line);
+
                 return $line;
             }
         }
-        
+
         // Fallback: remove multiple spaces
         $version = preg_replace('/\s+/', ' ', $version);
-        
+
         return $version;
     }
 }

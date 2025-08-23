@@ -76,7 +76,7 @@ it('can get version file path', function () {
     $fileCommands = new FileCommands();
     $basePath = '/project/root';
     $fileName = 'VERSION';
-    
+
     $result = $fileCommands->getVersionFilePath($basePath, $fileName);
     expect($result)->toContain('VERSION');
     expect($result)->toContain('project');
@@ -231,7 +231,7 @@ it('handles invalid version formats gracefully', function () {
 // Version File Content Validation Tests
 it('validates version file content with basic format', function () {
     $fileCommands = new FileCommands();
-    
+
     $validContents = [
         '1.0.0',
         'v2.1.3',
@@ -239,15 +239,15 @@ it('validates version file content with basic format', function () {
         '2.0.0+build.123',
         'version 1.2.3',
     ];
-    
+
     foreach ($validContents as $content) {
         // Create a temporary file for testing
         $tempFile = tempnam(sys_get_temp_dir(), 'version_test_');
         file_put_contents($tempFile, $content);
-        
+
         $isValid = $fileCommands->isValidVersionFile($tempFile);
         expect($isValid)->toBeTrue("Content '$content' should be valid");
-        
+
         unlink($tempFile);
     }
 });
@@ -263,7 +263,7 @@ it('handles version file path with Windows directory separators', function () {
     $fileCommands = new FileCommands();
     $basePath = 'C:\\project\\root';
     $fileName = 'VERSION';
-    
+
     $result = $fileCommands->getVersionFilePath($basePath, $fileName);
     expect($result)->toContain('VERSION');
     expect($result)->toContain('project');
