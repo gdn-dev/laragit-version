@@ -128,11 +128,11 @@ class LaragitVersion
         $url = $this->shell(
             $this->commands->getRepositoryUrl()
         );
-        
+
         if (empty($url)) {
             Log::warning('No remote repository URL found');
         }
-        
+
         return $url;
     }
 
@@ -147,9 +147,10 @@ class LaragitVersion
         if (empty($repository)) {
             return false;
         }
-        
+
         $result = $this->shell($this->commands->validateRemoteRepository($repository));
-        return !empty($result) && !str_contains($result, 'fatal');
+
+        return ! empty($result) && ! str_contains($result, 'fatal');
     }
 
     public function getCommitHash(): string
@@ -164,12 +165,12 @@ class LaragitVersion
         if ($this->config->get('version.source') === Constants::VERSION_SOURCE_GIT_LOCAL) {
             return $this->shell($this->commands->getLatestVersionOnLocal());
         }
-        
+
         $repositoryUrl = $this->getRepositoryUrl();
-        if (!$this->validateRemoteRepository($repositoryUrl)) {
+        if (! $this->validateRemoteRepository($repositoryUrl)) {
             throw TagNotFound::remoteRepositoryUnavailable($repositoryUrl);
         }
-        
+
         return $this->shell($this->commands->getLatestVersionOnRemote($repositoryUrl));
     }
 
@@ -182,32 +183,32 @@ class LaragitVersion
     public function getCurrentVersion(): string
     {
         $cacheKey = Constants::CACHE_KEY_VERSION;
-        
+
         if (Cache::has($cacheKey)) {
             return Cache::get($cacheKey);
         }
 
         // Validate Git availability and repository
-        if (!$this->isGitAvailable()) {
+        if (! $this->isGitAvailable()) {
             throw TagNotFound::gitNotInstalled();
         }
-        
-        if (!$this->isGitRepository()) {
+
+        if (! $this->isGitRepository()) {
             throw TagNotFound::notGitRepository();
         }
-        
-        if (!$this->hasGitTags()) {
+
+        if (! $this->hasGitTags()) {
             throw TagNotFound::noTagsFound();
         }
 
         $version = $this->getVersion();
-        
+
         if (empty($version)) {
             throw TagNotFound::noTagsFound();
         }
 
         Cache::put($cacheKey, $version, 300); // Cache for 5 minutes
-        
+
         return $version;
     }
 
@@ -230,7 +231,7 @@ class LaragitVersion
     {
         $hash = $this->getCommitHash();
         $shortHash = substr($hash, 0, $this->getCommitLength());
-        
+
         return [
             'hash' => $hash,
             'short' => $shortHash,
@@ -247,7 +248,7 @@ class LaragitVersion
     {
         // Remove common prefixes
         $cleanVersion = preg_replace('/^(v|ver|version)\s*/i', '', $version);
-        
+
         if (preg_match(Constants::MATCHER, $cleanVersion, $matches)) {
             return [
                 'full' => $version,
@@ -259,7 +260,7 @@ class LaragitVersion
                 'buildmetadata' => $matches['buildmetadata'] ?? '',
             ];
         }
-        
+
         return [
             'full' => $version,
             'clean' => $cleanVersion,
@@ -280,13 +281,13 @@ class LaragitVersion
     public function show(?string $format = null): string
     {
         $format = $format ?? $this->config->get('version.format', Constants::DEFAULT_FORMAT);
-        
+
         try {
             $version = $this->getCurrentVersion();
             $commit = $this->getCommitInfo();
             $branch = $this->getCurrentBranch();
             $versionParts = $this->parseVersion($version);
-            
+
             return match ($format) {
                 Constants::FORMAT_FULL => "Version {$versionParts['clean']} (commit {$commit['short']})",
                 Constants::FORMAT_COMPACT => "v{$versionParts['clean']}",
@@ -302,6 +303,7 @@ class LaragitVersion
             };
         } catch (TagNotFound $e) {
             Log::warning('Version not found: ' . $e->getMessage());
+
             return 'No version available';
         }
     }
@@ -342,7 +344,8 @@ class LaragitVersion
     public function isGitRepository(): bool
     {
         $result = $this->shell($this->commands->checkGitRepository());
-        return !empty($result) && !str_contains($result, 'not a git repository');
+
+        return ! empty($result) && ! str_contains($result, 'not a git repository');
     }
 
     /**
@@ -353,7 +356,8 @@ class LaragitVersion
     public function isGitAvailable(): bool
     {
         $result = $this->shell($this->commands->checkGitAvailable());
-        return !empty($result) && str_contains($result, 'git version');
+
+        return ! empty($result) && str_contains($result, 'git version');
     }
 
     /**
@@ -363,12 +367,13 @@ class LaragitVersion
      */
     public function hasGitTags(): bool
     {
-        if (!$this->isGitRepository()) {
+        if (! $this->isGitRepository()) {
             return false;
         }
-        
+
         $result = $this->shell($this->commands->hasAnyTags());
-        return !empty($result) && intval(trim($result)) > 0;
+
+        return ! empty($result) && intval(trim($result)) > 0;
     }
 
     /**
@@ -383,7 +388,7 @@ class LaragitVersion
             $commit = $this->getCommitInfo();
             $branch = $this->getCurrentBranch();
             $versionParts = $this->parseVersion($version);
-            
+
             return [
                 'version' => $versionParts,
                 'commit' => $commit,

@@ -84,7 +84,7 @@ it('provides tag checking commands', function () {
     $command = $gitCommands->hasAnyTags();
     expect($command)->toBeString();
     expect($command)->toContain('git tag -l | wc -l');
-    
+
     $allTagsCommand = $gitCommands->getAllTags();
     expect($allTagsCommand)->toBeString();
     expect($allTagsCommand)->toContain('git tag -l --sort=-version:refname');
@@ -145,7 +145,7 @@ it('validates semantic version regex pattern', function () {
         'ver 1.0.0-alpha.1',
         '1.0.0+build.123',
     ];
-    
+
     foreach ($validVersions as $version) {
         $cleanVersion = preg_replace('/^(v|ver|version)\s*/i', '', $version);
         $matches = [];
@@ -161,7 +161,7 @@ it('handles invalid version formats gracefully', function () {
         '1.2',
         'not-a-version',
     ];
-    
+
     foreach ($invalidVersions as $version) {
         $cleanVersion = preg_replace('/^(v|ver|version)\s*/i', '', $version);
         $matches = [];

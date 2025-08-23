@@ -96,6 +96,7 @@ class ServiceProvider extends IlluminateServiceProvider
     {
         Blade::directive('laragitVersion', function ($format = null) {
             $formatString = $format ? $format : "'" . Constants::DEFAULT_FORMAT . "'";
+
             return "<?php echo app('gdn-dev.laragit-version')->show($formatString); ?>";
         });
     }
