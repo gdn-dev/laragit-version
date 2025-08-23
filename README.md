@@ -17,12 +17,12 @@ LaraGit Version automatically detects your Git tags and provides a simple API to
 - 💾 **Caching Support** - Performance optimized
 - 🛡️ **Error Handling** - Graceful fallbacks
 - 🔧 **Blade Directive** - Easy template integration
-- 📱 **Laravel 9+** - Modern Laravel support
+- 📱 **Laravel 9-12** - Supports Laravel 9, 10, 11, and 12
 
 ## 📋 Requirements
 
-- PHP 8.0 or higher
-- Laravel 9.0 or higher
+- PHP 8.1 or higher
+- Laravel 9.0 - 12.x
 - Git (installed and accessible)
 
 ## 📦 Installation
