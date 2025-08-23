@@ -124,9 +124,31 @@ class LaragitVersion
 
     public function getRepositoryUrl(): string
     {
-        return $this->shell(
+        $url = $this->shell(
             $this->commands->getRepositoryUrl()
         );
+        
+        if (empty($url)) {
+            Log::warning('No remote repository URL found');
+        }
+        
+        return $url;
+    }
+
+    /**
+     * Validate remote repository accessibility.
+     *
+     * @param string $repository
+     * @return bool
+     */
+    public function validateRemoteRepository(string $repository): bool
+    {
+        if (empty($repository)) {
+            return false;
+        }
+        
+        $result = $this->shell($this->commands->validateRemoteRepository($repository));
+        return !empty($result) && !str_contains($result, 'fatal');
     }
 
     public function getCommitHash(): string
@@ -138,9 +160,16 @@ class LaragitVersion
 
     protected function getVersion(): string
     {
-        return $this->config->get('version.source') === Constants::VERSION_SOURCE_GIT_LOCAL ?
-            $this->shell($this->commands->getLatestVersionOnLocal()) :
-            $this->shell($this->commands->getLatestVersionOnRemote($this->getRepositoryUrl()));
+        if ($this->config->get('version.source') === Constants::VERSION_SOURCE_GIT_LOCAL) {
+            return $this->shell($this->commands->getLatestVersionOnLocal());
+        }
+        
+        $repositoryUrl = $this->getRepositoryUrl();
+        if (!$this->validateRemoteRepository($repositoryUrl)) {
+            throw TagNotFound::remoteRepositoryUnavailable($repositoryUrl);
+        }
+        
+        return $this->shell($this->commands->getLatestVersionOnRemote($repositoryUrl));
     }
 
     /**
@@ -159,21 +188,21 @@ class LaragitVersion
 
         // Validate Git availability and repository
         if (!$this->isGitAvailable()) {
-            throw new TagNotFound('Git is not available on this system.');
+            throw TagNotFound::gitNotInstalled();
         }
         
         if (!$this->isGitRepository()) {
-            throw new TagNotFound('Current directory is not a Git repository.');
+            throw TagNotFound::notGitRepository();
         }
         
         if (!$this->hasGitTags()) {
-            throw new TagNotFound('No Git tags found in the repository.');
+            throw TagNotFound::noTagsFound();
         }
 
         $version = $this->getVersion();
         
         if (empty($version)) {
-            throw new TagNotFound('No valid version tags found in the repository.');
+            throw TagNotFound::noTagsFound();
         }
 
         Cache::put($cacheKey, $version, 300); // Cache for 5 minutes
