@@ -93,6 +93,16 @@ class GitCommands
     }
 
     /**
+     * Get the current branch name.
+     *
+     * @return string
+     */
+    public function getCurrentBranch(): string
+    {
+        return "git rev-parse --abbrev-ref HEAD";
+    }
+
+    /**
      * Get the latest version tag on the remote repository.
      *
      * @param string $repository The URL of the remote repository.
