@@ -12,6 +12,7 @@ return [
     | Available options:
     | - 'git-local': Retrieves version from local git repository (default)
     | - 'git-remote': Retrieves version from remote git repository
+    | - 'file': Retrieves version from a VERSION file
     |
     */
     'source' => Constants::VERSION_SOURCE_GIT_LOCAL,
@@ -26,6 +27,18 @@ return [
     |
     */
     'branch' => Constants::DEFAULT_BRANCH,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Version File Path
+    |--------------------------------------------------------------------------
+    |
+    | When using 'file' as the version source, this specifies the path to
+    | the VERSION file relative to the project root. The file should contain
+    | only the version string (e.g., "1.0.0" or "v1.2.3").
+    |
+    */
+    'version_file' => Constants::DEFAULT_VERSION_FILE,
 
     /*
     |--------------------------------------------------------------------------

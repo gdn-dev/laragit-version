@@ -48,6 +48,10 @@ class Constants
 
     public const VERSION_SOURCE_GIT_REMOTE = 'git-remote';
 
+    public const VERSION_SOURCE_FILE = 'file';
+
+    public const DEFAULT_VERSION_FILE = 'VERSION';
+
     public const DEFAULT_BLADE_DIRECTIVE = 'laragitVersion';
 
     public const DEFAULT_BRANCH = 'main';
