@@ -4,6 +4,7 @@ namespace GenialDigitalNusantara\LaragitVersion;
 
 use GenialDigitalNusantara\LaragitVersion\Exceptions\TagNotFound;
 use GenialDigitalNusantara\LaragitVersion\Helper\Constants;
+use GenialDigitalNusantara\LaragitVersion\Helper\FileCommands;
 use GenialDigitalNusantara\LaragitVersion\Helper\GitCommands;
 use Illuminate\Config\Repository;
 use Illuminate\Contracts\Container\Container;
@@ -28,6 +29,9 @@ class LaragitVersion
     /** @var GitCommands */
     protected GitCommands $commands;
 
+    /** @var FileCommands */
+    protected FileCommands $fileCommands;
+
     /**
      * @param Container|null $app
      */
@@ -39,6 +43,7 @@ class LaragitVersion
         $this->app = $app;
         $this->config = $app['config'];
         $this->commands = new GitCommands();
+        $this->fileCommands = new FileCommands();
     }
 
     /**
@@ -155,23 +160,70 @@ class LaragitVersion
 
     public function getCommitHash(): string
     {
-        return $this->config->get('version.source') === Constants::VERSION_SOURCE_GIT_LOCAL ?
+        $source = $this->config->get('version.source');
+        
+        // For file source, return empty string since there's no commit hash
+        if ($source === Constants::VERSION_SOURCE_FILE) {
+            return '';
+        }
+        
+        return $source === Constants::VERSION_SOURCE_GIT_LOCAL ?
             $this->shell($this->commands->getCommitOnLocal()) :
             $this->shell($this->commands->getLatestCommitOnRemote($this->getRepositoryUrl()));
     }
 
     protected function getVersion(): string
     {
-        if ($this->config->get('version.source') === Constants::VERSION_SOURCE_GIT_LOCAL) {
-            return $this->shell($this->commands->getLatestVersionOnLocal());
-        }
+        $source = $this->config->get('version.source');
+        
+        return match ($source) {
+            Constants::VERSION_SOURCE_GIT_LOCAL => $this->shell($this->commands->getLatestVersionOnLocal()),
+            Constants::VERSION_SOURCE_GIT_REMOTE => $this->getVersionFromRemote(),
+            Constants::VERSION_SOURCE_FILE => $this->getVersionFromFile(),
+            default => $this->shell($this->commands->getLatestVersionOnLocal()),
+        };
+    }
 
+    /**
+     * Get version from remote Git repository.
+     *
+     * @return string
+     */
+    protected function getVersionFromRemote(): string
+    {
         $repositoryUrl = $this->getRepositoryUrl();
         if (! $this->validateRemoteRepository($repositoryUrl)) {
             throw TagNotFound::remoteRepositoryUnavailable($repositoryUrl);
         }
-
+        
         return $this->shell($this->commands->getLatestVersionOnRemote($repositoryUrl));
+    }
+
+    /**
+     * Get version from VERSION file.
+     *
+     * @return string
+     */
+    protected function getVersionFromFile(): string
+    {
+        $fileName = $this->config->get('version.version_file', Constants::DEFAULT_VERSION_FILE);
+        $filePath = $this->fileCommands->getVersionFilePath($this->getBasePath(), $fileName);
+        
+        if (! $this->fileCommands->fileExists($filePath)) {
+            throw TagNotFound::versionFileNotFound($filePath);
+        }
+        
+        if (! $this->fileCommands->isValidVersionFile($filePath)) {
+            throw TagNotFound::invalidVersionFile($filePath);
+        }
+        
+        $version = $this->fileCommands->getVersionFromFile($filePath);
+        
+        if (empty($version)) {
+            throw TagNotFound::emptyVersionFile($filePath);
+        }
+        
+        return $this->fileCommands->parseVersionContent($version);
     }
 
     /**
@@ -188,20 +240,27 @@ class LaragitVersion
             return Cache::get($cacheKey);
         }
 
-        // Validate Git availability and repository
-        if (! $this->isGitAvailable()) {
-            throw TagNotFound::gitNotInstalled();
-        }
+        $source = $this->config->get('version.source');
+        
+        // For file source, skip Git validation
+        if ($source === Constants::VERSION_SOURCE_FILE) {
+            $version = $this->getVersion();
+        } else {
+            // Validate Git availability and repository for Git sources
+            if (! $this->isGitAvailable()) {
+                throw TagNotFound::gitNotInstalled();
+            }
 
-        if (! $this->isGitRepository()) {
-            throw TagNotFound::notGitRepository();
-        }
+            if (! $this->isGitRepository()) {
+                throw TagNotFound::notGitRepository();
+            }
 
-        if (! $this->hasGitTags()) {
-            throw TagNotFound::noTagsFound();
-        }
+            if (! $this->hasGitTags()) {
+                throw TagNotFound::noTagsFound();
+            }
 
-        $version = $this->getVersion();
+            $version = $this->getVersion();
+        }
 
         if (empty($version)) {
             throw TagNotFound::noTagsFound();
@@ -219,6 +278,13 @@ class LaragitVersion
      */
     public function getCurrentBranch(): string
     {
+        $source = $this->config->get('version.source');
+        
+        // For file source, return configured branch or default
+        if ($source === Constants::VERSION_SOURCE_FILE) {
+            return $this->config->get('version.branch', Constants::DEFAULT_BRANCH);
+        }
+        
         return $this->shell($this->commands->getCurrentBranch());
     }
 
