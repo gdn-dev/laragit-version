@@ -41,7 +41,7 @@ jobs:
         run: composer show -D
 
       - name: Run tests
-        run: vendor/bin/pest --coverage-clover=coverage.xml --min=75 -c phpunit.xml.dist
+        run: vendor/bin/pest --coverage-clover=build/logs/clover.xml --min=75 -c phpunit.xml.dist
 
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v5
