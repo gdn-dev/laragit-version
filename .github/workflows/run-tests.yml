@@ -27,6 +27,7 @@ jobs:
         with:
           php-version: 8.1
           extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick, fileinfo
+          ini-values: xdebug.mode=coverage
           coverage: xdebug
 
       - name: Setup problem matchers
@@ -35,7 +36,7 @@ jobs:
           echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
       - name: Install dependencies
-        run: composer update --prefer-lowest --prefer-dist --no-interaction
+        run: composer update --prefer-stable --prefer-dist --no-interaction
 
       - name: List Installed Dependencies
         run: composer show -D
@@ -43,8 +44,17 @@ jobs:
       - name: Create build directories
         run: mkdir -p build build/logs build/coverage
 
-      - name: Run tests
-        run: vendor/bin/pest --coverage-clover=build/logs/clover.xml --min=75 -c phpunit.xml.dist
+      - name: Run tests with coverage
+        run: |
+          XDEBUG_MODE=coverage vendor/bin/pest --coverage-clover=build/logs/clover.xml --min=75
+
+      - name: Verify coverage report exists
+        run: |
+          if [ ! -f build/logs/clover.xml ]; then
+            echo "Coverage report was not generated!"
+            ls -la build/logs/ || echo "build/logs directory does not exist"
+            exit 1
+          fi
 
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v5
