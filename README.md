@@ -2,6 +2,7 @@
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/gdn-dev/laragit-version.svg?style=flat-square)](https://packagist.org/packages/gdn-dev/laragit-version)
 [![Tests](https://img.shields.io/github/actions/workflow/status/gdn-dev/laragit-version/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/gdn-dev/laragit-version/actions/workflows/run-tests.yml)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=gdn-dev_laragit-version&metric=coverage)](https://sonarcloud.io/summary/new_code?id=gdn-dev_laragit-version)
 [![Total Downloads](https://img.shields.io/packagist/dt/gdn-dev/laragit-version.svg?style=flat-square)](https://packagist.org/packages/gdn-dev/laragit-version)
 
 Effortlessly manage versions in your Laravel project using Git tags. No configuration required - just install and use!
