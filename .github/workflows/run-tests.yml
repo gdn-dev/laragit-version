@@ -40,6 +40,9 @@ jobs:
       - name: List Installed Dependencies
         run: composer show -D
 
+      - name: Create build directories
+        run: mkdir -p build build/logs build/coverage
+
       - name: Run tests
         run: vendor/bin/pest --coverage-clover=build/logs/clover.xml --min=75 -c phpunit.xml.dist
 
@@ -47,3 +50,10 @@ jobs:
         uses: SonarSource/sonarqube-scan-action@v5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=gdn-dev_laragit-version
+            -Dsonar.organization=gdn-dev
+            -Dsonar.sources=src
+            -Dsonar.tests=tests
+            -Dsonar.php.coverage.reportPaths=build/logs/clover.xml
