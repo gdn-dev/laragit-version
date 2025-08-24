@@ -46,7 +46,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Defines how the version string will be displayed.
-    | 
+    |
     | Available placeholders:
     | - {full}: Full version string (e.g "Version 1.0.0 (commit a33376b)")
     | - {compact}: Short version string (e.g "v1.0.0")
@@ -80,7 +80,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Defines how the datetime string will be displayed.
-    | 
+    |
     | Default format: 'Y-m-d H:i'
     |
     */
@@ -92,7 +92,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Custom Blade directive allows you to change the name of the Blade directive.
-    | 
+    |
     | By default, use @laragitVersion in your Blade templates.
     | You can customize this to use a different directive name.
     |
