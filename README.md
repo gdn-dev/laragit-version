@@ -55,16 +55,18 @@ $info = LaragitVersion::getVersionInfo();
 
 ### Using VERSION File
 
-```php
-// Configure to use VERSION file
-config(['version.source' => 'file']);
+LaraGit Version automatically detects when a `VERSION` file is present in your project root and will use it instead of Git tags, even if the source is configured as `git-local`. This prevents unnecessary Git command executions and log spam when Git is not available.
 
+```php
 // Create VERSION file in project root
 file_put_contents(base_path('VERSION'), '2.1.0');
 
-// Use normally
+// Package automatically uses VERSION file even with default configuration
 echo LaragitVersion::show(); // "Version 2.1.0"
-echo LaragitVersion::show('compact'); // "v2.1.0"
+
+// You can also explicitly configure to use VERSION file
+config(['version.source' => 'file']);
+echo LaragitVersion::show(); // "Version 2.1.0"
 ```
 
 ### Blade Templates
@@ -199,193 +201,42 @@ $info = LaragitVersion::getVersionInfo();
 
 // Check Git availability
 if (LaragitVersion::isGitAvailable()) {
-    // Git is installed and accessible
+    // Git is available
 }
 
-// Check if current directory is a Git repository
-if (LaragitVersion::isGitRepository()) {
-    // We're in a Git repository
-}
+// Get current branch
+$branch = LaragitVersion::getCurrentBranch();
 ```
 
-### Remote Repository
+## 🛠️ Troubleshooting
 
-Use remote Git repository for version detection:
+### Git Not Found Issues
 
-```php
-// In config/version.php
-'source' => 'git-remote',
-```
+If you're seeing repeated Git command errors in your logs, it's likely because:
 
-This will fetch version information from the remote repository instead of local tags.
+1. Git is not installed on your system
+2. Git is not in your system PATH
+3. You're in a directory that is not a Git repository
 
-### VERSION File
+To resolve this:
 
-Use a VERSION file for deployment scenarios where Git is not available:
+1. **Install Git** - Make sure Git is installed and accessible from the command line
+2. **Use VERSION file** - Create a VERSION file in your project root for environments where Git is not available
+3. **Configure source** - Explicitly set `'source' => 'file'` in your configuration
 
-```php
-// In config/version.php
-'source' => 'file',
-'version_file' => 'VERSION', // Path relative to project root
-```
+### Version File Issues
 
-Create a `VERSION` file in your project root:
+When using VERSION files:
 
-```
-1.0.0
-```
+1. Ensure the file is in your project root
+2. The file should contain only the version string (e.g., "1.0.0" or "v1.2.3")
+3. The file should be readable by your application
 
-The VERSION file can contain:
-- Simple version numbers: `1.0.0`
-- Semantic versions: `v2.1.3-alpha.1`
-- Version with prefixes: `version 1.2.3`
-- Multi-line files (first non-empty line is used)
+### Logging Issues
 
-**Benefits of VERSION file approach:**
-- ✅ Works in deployment environments without Git
-- ✅ Simple CI/CD integration
-- ✅ No dependency on Git tags
-- ✅ Easy version management for Docker containers
-- ✅ Compatible with automated deployment tools
+The package now automatically detects when to use VERSION files and skips unnecessary Git operations, which should significantly reduce log spam in environments where Git is not available.
 
-## 🔧 Git Tag Requirements
-
-For best results, use semantic versioning for your Git tags:
-
-```bash
-# Good examples
-git tag v1.0.0
-git tag v2.1.3
-git tag v1.0.0-alpha.1
-git tag v1.0.0+build.123
-
-# Also supported
-git tag 1.0.0
-git tag version-1.0.0
-```
-
-## 📄 VERSION File Requirements
-
-When using the VERSION file source, follow these guidelines:
-
-### File Location
-- Place the VERSION file in your project root
-- Or specify a custom path in configuration: `'version_file' => 'deployment/VERSION'`
-
-### File Content Format
-```
-# Simple version
-1.0.0
-
-# Semantic version with prefix
-v2.1.3
-
-# Version with prerelease
-1.0.0-alpha.1
-
-# Version with build metadata
-2.0.0+build.123
-
-# Multiline (first non-empty line used)
-
-1.2.3
-Build date: 2025-01-01
-Commit: abc123
-```
-
-### Best Practices
-- ✅ Use semantic versioning (major.minor.patch)
-- ✅ Keep the file simple and clean
-- ✅ Automate VERSION file updates in CI/CD
-- ✅ Validate file content before deployment
-- ❌ Avoid special characters or complex formatting
-
-## 🚨 Error Scenarios
-
-The package handles various error scenarios gracefully:
-
-| Scenario | Behavior |
-|----------|----------|
-| No Git installed | Returns "No version available" |
-| Not a Git repository | Returns "No version available" |
-| No Git tags | Throws `TagNotFound` exception |
-| Remote repository unavailable | Throws `TagNotFound` exception |
-| VERSION file not found | Throws `TagNotFound` exception |
-| Empty VERSION file | Throws `TagNotFound` exception |
-| Invalid VERSION file content | Throws `TagNotFound` exception |
-| Invalid tag format | Graceful fallback |
-
-## 🧪 Testing
-
-Run the test suite:
-
-```bash
-composer test
-```
-
-Run tests with coverage:
-
-```bash
-composer test-coverage
-```
-
-## 🎨 Code Style
-
-Format code using PHP CS Fixer:
-
-```bash
-composer format
-```
-
-## 📚 API Reference
-
-### LaragitVersion Methods
-
-```php
-// Display formatted version
-show(?string $format = null): string
-
-// Get current version
-getCurrentVersion(): string
-
-// Get current Git branch
-getCurrentBranch(): string
-
-// Get commit information
-getCommitInfo(): array
-
-// Get comprehensive version info
-getVersionInfo(): array
-
-// Check Git availability
-isGitAvailable(): bool
-
-// Check if Git repository
-isGitRepository(): bool
-
-// Get repository URL
-getRepositoryUrl(): string
-```
-
-## 🤝 Contributing
-
-We welcome contributions! Please see [CONTRIBUTING](https://github.com/spatie/.github/blob/main/CONTRIBUTING.md) for details.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 🔒 Security
-
-If you discover any security-related issues, please email security@genilogi.id instead of using the issue tracker.
-
-## 📄 Changelog
-
-Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
-
-## 📜 License
+## 📄 License
 
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
 
