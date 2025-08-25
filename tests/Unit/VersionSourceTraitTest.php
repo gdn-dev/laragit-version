@@ -290,3 +290,95 @@ it('tests getVersionFromRemote method throws exception when remote repository is
 
     expect(fn() => $laragitVersion->testGetVersionFromRemote())->toThrow(TagNotFound::class);
 });
+
+it('tests shouldUseFileSource method via reflection with configured file source', function () {
+    $container = new Container();
+    $config = new Repository([
+        'version' => [
+            'source' => Constants::VERSION_SOURCE_FILE,
+            'version_file' => 'VERSION',
+        ],
+    ]);
+    $container->instance('config', $config);
+
+    $laragitVersion = new class ($container) extends LaragitVersion {
+        public function getBasePath(): string
+        {
+            return sys_get_temp_dir();
+        }
+
+        public function testShouldUseFileSource(): bool
+        {
+            $reflection = new ReflectionClass($this);
+            $method = $reflection->getMethod('shouldUseFileSource');
+            $method->setAccessible(true);
+            return $method->invoke($this);
+        }
+    };
+
+    expect($laragitVersion->testShouldUseFileSource())->toBeTrue();
+});
+
+it('tests shouldUseFileSource method via reflection with auto-detected file source', function () {
+    // Create a temporary VERSION file for testing
+    $tempDir = sys_get_temp_dir();
+    $versionFile = $tempDir . DIRECTORY_SEPARATOR . 'VERSION';
+    file_put_contents($versionFile, '1.0.0');
+
+    $container = new Container();
+    $config = new Repository([
+        'version' => [
+            'source' => Constants::VERSION_SOURCE_GIT_LOCAL, // Configured as git-local but VERSION file exists
+            'version_file' => 'VERSION',
+        ],
+    ]);
+    $container->instance('config', $config);
+
+    $laragitVersion = new class ($container) extends LaragitVersion {
+        public function getBasePath(): string
+        {
+            return sys_get_temp_dir();
+        }
+
+        public function testShouldUseFileSource(): bool
+        {
+            $reflection = new ReflectionClass($this);
+            $method = $reflection->getMethod('shouldUseFileSource');
+            $method->setAccessible(true);
+            return $method->invoke($this);
+        }
+    };
+
+    expect($laragitVersion->testShouldUseFileSource())->toBeTrue();
+
+    // Cleanup
+    unlink($versionFile);
+});
+
+it('tests shouldUseFileSource method via reflection when no VERSION file exists', function () {
+    $container = new Container();
+    $config = new Repository([
+        'version' => [
+            'source' => Constants::VERSION_SOURCE_GIT_LOCAL,
+            'version_file' => 'NONEXISTENT_VERSION_FILE',
+        ],
+    ]);
+    $container->instance('config', $config);
+
+    $laragitVersion = new class ($container) extends LaragitVersion {
+        public function getBasePath(): string
+        {
+            return sys_get_temp_dir();
+        }
+
+        public function testShouldUseFileSource(): bool
+        {
+            $reflection = new ReflectionClass($this);
+            $method = $reflection->getMethod('shouldUseFileSource');
+            $method->setAccessible(true);
+            return $method->invoke($this);
+        }
+    };
+
+    expect($laragitVersion->testShouldUseFileSource())->toBeFalse();
+});
