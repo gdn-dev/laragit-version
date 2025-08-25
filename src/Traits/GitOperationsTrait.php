@@ -29,11 +29,11 @@ trait GitOperationsTrait
             if ($process->isSuccessful()) {
                 $output = $process->getOutput();
             } else {
-                Log::error("execShellWithProcess($command, $path): " . $process->getErrorOutput());
+                $this->logError("execShellWithProcess($command, $path): " . $process->getErrorOutput());
                 $output = '';
             }
         } catch (RuntimeException $e) {
-            Log::error("execShellWithProcess($command, $path): " . $e->getMessage());
+            $this->logError("execShellWithProcess($command, $path): " . $e->getMessage());
             $output = '';
         }
 
@@ -84,10 +84,10 @@ trait GitOperationsTrait
         try {
             // Validate path exists and is accessible
             if (! $this->isValidPath($path)) {
-                Log::error("execShellDirectly($command, $path): Path is not accessible");
+                $this->logError("execShellDirectly($command, $path): Path is not accessible");
             } elseif (! chdir($path)) {
                 // Change to the specified directory
-                Log::error("execShellDirectly($command, $path): Failed to change directory");
+                $this->logError("execShellDirectly($command, $path): Failed to change directory");
             } else {
                 // Execute command with error redirection
                 // On Windows, we need to be more careful with command execution
@@ -95,15 +95,15 @@ trait GitOperationsTrait
 
                 // Check if the output contains error indicators
                 if ($output === null || $output === false) {
-                    Log::error("execShellDirectly($command, $path): Command execution failed or returned null");
+                    $this->logError("execShellDirectly($command, $path): Command execution failed or returned null");
                     $output = '';
                 } elseif ($this->hasErrorIndicators($output)) {
-                    Log::warning("execShellDirectly($command, $path): Potential error in command output: " . trim($output));
+                    $this->logWarning("execShellDirectly($command, $path): Potential error in command output: " . trim($output));
                     $output = '';
                 }
             }
         } catch (Throwable $e) {
-            Log::error("execShellDirectly($command, $path): Exception occurred - " . $e->getMessage());
+            $this->logError("execShellDirectly($command, $path): Exception occurred - " . $e->getMessage());
             $output = '';
         } finally {
             // Restore original directory even if an exception occurs
@@ -125,6 +125,73 @@ trait GitOperationsTrait
     }
 
     /**
+     * Log error message.
+     *
+     * @param string $message
+     * @return void
+     */
+    private function logError(string $message): void
+    {
+        if (class_exists('\Illuminate\Support\Facades\Log')) {
+            try {
+                Log::error($message);
+            } catch (Throwable $e) {
+                // If we can't log through Laravel, fallback to error_log
+                error_log($message);
+            }
+        } else {
+            error_log($message);
+        }
+    }
+
+    /**
+     * Log warning message.
+     *
+     * @param string $message
+     * @return void
+     */
+    private function logWarning(string $message): void
+    {
+        if (class_exists('\Illuminate\Support\Facades\Log')) {
+            try {
+                Log::warning($message);
+            } catch (Throwable $e) {
+                // If we can't log through Laravel, fallback to error_log
+                error_log($message);
+            }
+        } else {
+            error_log($message);
+        }
+    }
+
+    /**
+     * Log debug message.
+     *
+     * @param string $message
+     * @return void
+     */
+    private function logDebug(string $message): void
+    {
+        if (class_exists('\Illuminate\Support\Facades\Log')) {
+            try {
+                Log::debug($message);
+            } catch (Throwable $e) {
+                // If we can't log through Laravel, fallback to error_log
+                error_log($message);
+            }
+        } else {
+            error_log($message);
+        }
+    }
+
+    /**
+     * Flag to prevent recursive calls to isGitRepository.
+     *
+     * @var bool
+     */
+    private $checkingGitRepository = false;
+
+    /**
      * Execute shell command.
      *
      * @param string $command
@@ -132,21 +199,25 @@ trait GitOperationsTrait
      */
     protected function shell($command): string
     {
-        Log::debug("Executing Git command: $command");
+        $this->logDebug("Executing Git command: $command");
 
         $basePath = $this->getBasePath();
-        Log::debug("Using base path: $basePath");
+        $this->logDebug("Using base path: $basePath");
 
         // Validate base path
         if (! is_dir($basePath) || ! is_readable($basePath)) {
-            Log::error("shell($command): Base path is not accessible: $basePath");
+            $this->logError("shell($command): Base path is not accessible: $basePath");
 
             return '';
         }
 
-        // Check if we're in a Git repository for Git commands
-        if (str_starts_with($command, 'git') && ! $this->isGitRepository()) {
-            Log::warning("shell($command): Attempting to run Git command outside of Git repository");
+        // Check if we're in a Git repository for Git commands, but prevent recursion
+        if (str_starts_with($command, 'git') && ! $this->checkingGitRepository) {
+            $this->checkingGitRepository = true;
+            if (! $this->isGitRepository()) {
+                $this->logWarning("shell($command): Attempting to run Git command outside of Git repository");
+            }
+            $this->checkingGitRepository = false;
         }
 
         $output = class_exists('\Symfony\Component\Process\Process') ?
@@ -154,7 +225,7 @@ trait GitOperationsTrait
             $this->execShellDirectly($command, $basePath);
 
         $cleanOutput = $this->cleanOutput($output);
-        Log::debug("Command output: " . ($cleanOutput ?: '[empty]'));
+        $this->logDebug("Command output: " . ($cleanOutput ?: '[empty]'));
 
         return $cleanOutput;
     }
