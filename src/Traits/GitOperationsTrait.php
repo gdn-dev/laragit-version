@@ -51,54 +51,45 @@ trait GitOperationsTrait
     private function execShellDirectly($command, $path): string
     {
         $originalDir = getcwd();
+        $output = '';
 
         // Validate path exists and is accessible
-        if (! is_dir($path) || ! is_readable($path)) {
+        if (!is_dir($path) || !is_readable($path)) {
             Log::error("execShellDirectly($command, $path): Path is not accessible");
-
-            return '';
-        }
-
-        // Change to the specified directory
-        if (! chdir($path)) {
+        } else if (!chdir($path)) {
+            // Change to the specified directory
             Log::error("execShellDirectly($command, $path): Failed to change directory");
+        } else {
+            try {
+                // Execute command with error redirection
+                // On Windows, we need to be more careful with command execution
+                $output = shell_exec($command . ' 2>&1');
 
-            return '';
-        }
-
-        try {
-            // Execute command with error redirection
-            // On Windows, we need to be more careful with command execution
-            $output = shell_exec($command . ' 2>&1');
-
-            // Restore original directory
-            chdir($originalDir);
-
-            // Check if the output contains error indicators
-            if ($output === null || $output === false) {
-                Log::error("execShellDirectly($command, $path): Command execution failed or returned null");
-
-                return '';
-            }
-
-            // Check for common error indicators in the output
-            $errorIndicators = ['error', 'fatal', 'command not found', 'is not recognized', "'git' is not recognized"];
-            foreach ($errorIndicators as $indicator) {
-                if (stripos($output, $indicator) !== false) {
-                    Log::warning("execShellDirectly($command, $path): Potential error in command output: " . trim($output));
-
-                    return '';
+                // Check if the output contains error indicators
+                if ($output === null || $output === false) {
+                    Log::error("execShellDirectly($command, $path): Command execution failed or returned null");
+                    $output = '';
+                } else {
+                    // Check for common error indicators in the output
+                    $errorIndicators = ['error', 'fatal', 'command not found', 'is not recognized', "'git' is not recognized"];
+                    foreach ($errorIndicators as $indicator) {
+                        if (stripos($output, $indicator) !== false) {
+                            Log::warning("execShellDirectly($command, $path): Potential error in command output: " . trim($output));
+                            $output = '';
+                            break;
+                        }
+                    }
                 }
+            } catch (Throwable $e) {
+                Log::error("execShellDirectly($command, $path): Exception occurred - " . $e->getMessage());
+                $output = '';
+            } finally {
+                // Restore original directory even if an exception occurs
+                chdir($originalDir);
             }
-
-            return $output ?? '';
-        } catch (Throwable $e) {
-            // Restore original directory even if an exception occurs
-            chdir($originalDir);
-            Log::error("execShellDirectly($command, $path): Exception occurred - " . $e->getMessage());
-
-            return '';
         }
+
+        return $output ?? '';
     }
 
     /**
