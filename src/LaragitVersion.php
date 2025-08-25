@@ -6,17 +6,21 @@ use GenialDigitalNusantara\LaragitVersion\Exceptions\TagNotFound;
 use GenialDigitalNusantara\LaragitVersion\Helper\Constants;
 use GenialDigitalNusantara\LaragitVersion\Helper\FileCommands;
 use GenialDigitalNusantara\LaragitVersion\Helper\GitCommands;
+use GenialDigitalNusantara\LaragitVersion\Traits\GitOperationsTrait;
+use GenialDigitalNusantara\LaragitVersion\Traits\VersionFormattingTrait;
+use GenialDigitalNusantara\LaragitVersion\Traits\VersionSourceTrait;
 use Illuminate\Config\Repository;
 use Illuminate\Contracts\Container\Container;
-use Illuminate\Foundation\Application;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use RuntimeException;
 use Symfony\Component\Process\Process;
 use Throwable;
 
 class LaragitVersion
 {
+    use GitOperationsTrait;
+    use VersionFormattingTrait;
+    use VersionSourceTrait;
+
     /**
      * The Laravel application instance.
      *
@@ -57,120 +61,9 @@ class LaragitVersion
         return base_path();
     }
 
-    private function cleanOutput($getOutput): string
-    {
-        return trim(str_replace("\n", '', $getOutput));
-    }
-
     private function getCommitLength(): int
     {
         return 6;
-    }
-
-    private function execShellWithProcess($command, $path): string
-    {
-        try {
-            if (method_exists(Process::class, 'fromShellCommandline')) {
-                $process = Process::fromShellCommandline($command, $path);
-            } else {
-                $process = new Process($command, $path);
-            }
-
-            $process->mustRun();
-            if ($process->isSuccessful()) {
-                $output = $process->getOutput();
-            } else {
-                Log::error("execShellWithProcess($command, $path): " . $process->getErrorOutput());
-                $output = '';
-            }
-        } catch (RuntimeException $e) {
-            Log::error("execShellWithProcess($command, $path): " . $e->getMessage());
-            $output = '';
-        }
-
-        return $output;
-    }
-
-    private function execShellDirectly($command, $path): string
-    {
-        $originalDir = getcwd();
-
-        // Validate path exists and is accessible
-        if (! is_dir($path) || ! is_readable($path)) {
-            Log::error("execShellDirectly($command, $path): Path is not accessible");
-
-            return '';
-        }
-
-        // Change to the specified directory
-        if (! chdir($path)) {
-            Log::error("execShellDirectly($command, $path): Failed to change directory");
-
-            return '';
-        }
-
-        try {
-            // Execute command with error redirection
-            // On Windows, we need to be more careful with command execution
-            $output = shell_exec($command . ' 2>&1');
-
-            // Restore original directory
-            chdir($originalDir);
-
-            // Check if the output contains error indicators
-            if ($output === null || $output === false) {
-                Log::error("execShellDirectly($command, $path): Command execution failed or returned null");
-
-                return '';
-            }
-
-            // Check for common error indicators in the output
-            $errorIndicators = ['error', 'fatal', 'command not found', 'is not recognized', "'git' is not recognized"];
-            foreach ($errorIndicators as $indicator) {
-                if (stripos($output, $indicator) !== false) {
-                    Log::warning("execShellDirectly($command, $path): Potential error in command output: " . trim($output));
-
-                    return '';
-                }
-            }
-
-            return $output ?? '';
-        } catch (Throwable $e) {
-            // Restore original directory even if an exception occurs
-            chdir($originalDir);
-            Log::error("execShellDirectly($command, $path): Exception occurred - " . $e->getMessage());
-
-            return '';
-        }
-    }
-
-    protected function shell($command): string
-    {
-        Log::debug("Executing Git command: $command");
-
-        $basePath = $this->getBasePath();
-        Log::debug("Using base path: $basePath");
-
-        // Validate base path
-        if (! is_dir($basePath) || ! is_readable($basePath)) {
-            Log::error("shell($command): Base path is not accessible: $basePath");
-
-            return '';
-        }
-
-        // Check if we're in a Git repository for Git commands
-        if (str_starts_with($command, 'git') && ! $this->isGitRepository()) {
-            Log::warning("shell($command): Attempting to run Git command outside of Git repository");
-        }
-
-        $output = class_exists('\Symfony\Component\Process\Process') ?
-            $this->execShellWithProcess($command, $basePath) :
-            $this->execShellDirectly($command, $basePath);
-
-        $cleanOutput = $this->cleanOutput($output);
-        Log::debug("Command output: " . ($cleanOutput ?: '[empty]'));
-
-        return $cleanOutput;
     }
 
     public function getRepositoryUrl(): string
@@ -217,105 +110,6 @@ class LaragitVersion
             $this->shell($this->commands->getLatestCommitOnRemote($this->getRepositoryUrl()));
     }
 
-    protected function getVersion(): string
-    {
-        $source = $this->config->get('version.source');
-
-        return match ($source) {
-            Constants::VERSION_SOURCE_GIT_LOCAL => $this->shell($this->commands->getLatestVersionOnLocal()),
-            Constants::VERSION_SOURCE_GIT_REMOTE => $this->getVersionFromRemote(),
-            Constants::VERSION_SOURCE_FILE => $this->getVersionFromFile(),
-            default => $this->shell($this->commands->getLatestVersionOnLocal()),
-        };
-    }
-
-    /**
-     * Get version from remote Git repository.
-     *
-     * @return string
-     */
-    protected function getVersionFromRemote(): string
-    {
-        $repositoryUrl = $this->getRepositoryUrl();
-        if (! $this->validateRemoteRepository($repositoryUrl)) {
-            throw TagNotFound::remoteRepositoryUnavailable($repositoryUrl);
-        }
-
-        return $this->shell($this->commands->getLatestVersionOnRemote($repositoryUrl));
-    }
-
-    /**
-     * Get version from VERSION file.
-     *
-     * @return string
-     */
-    protected function getVersionFromFile(): string
-    {
-        $fileName = $this->config->get('version.version_file', Constants::DEFAULT_VERSION_FILE);
-        $filePath = $this->fileCommands->getVersionFilePath($this->getBasePath(), $fileName);
-
-        if (! $this->fileCommands->fileExists($filePath)) {
-            throw TagNotFound::versionFileNotFound($filePath);
-        }
-
-        if (! $this->fileCommands->isValidVersionFile($filePath)) {
-            throw TagNotFound::invalidVersionFile($filePath);
-        }
-
-        $version = $this->fileCommands->getVersionFromFile($filePath);
-
-        if (empty($version)) {
-            throw TagNotFound::emptyVersionFile($filePath);
-        }
-
-        return $this->fileCommands->parseVersionContent($version);
-    }
-
-    /**
-     * Get the current version from Git tags.
-     *
-     * @return string
-     * @throws TagNotFound
-     */
-    public function getCurrentVersion(): string
-    {
-        $cacheKey = Constants::CACHE_KEY_VERSION;
-
-        if (Cache::has($cacheKey)) {
-            return Cache::get($cacheKey);
-        }
-
-        $source = $this->config->get('version.source');
-
-        // For file source, skip Git validation
-        if ($source === Constants::VERSION_SOURCE_FILE) {
-            $version = $this->getVersion();
-        } else {
-            // Validate Git availability and repository for Git sources
-            if (! $this->isGitAvailable()) {
-                throw TagNotFound::gitNotInstalled();
-            }
-
-            if (! $this->isGitRepository()) {
-                throw TagNotFound::notGitRepository();
-            }
-
-            if (! $this->hasGitTags()) {
-                throw TagNotFound::noTagsFound();
-            }
-
-            $version = $this->getVersion();
-        }
-
-        if (empty($version)) {
-            throw TagNotFound::noTagsFound();
-        }
-
-        Cache::put($cacheKey, $version, 300); // Cache for 5 minutes
-
-        return $version;
-    }
-
     /**
      * Get the current Git branch.
      *
@@ -346,40 +140,6 @@ class LaragitVersion
         return [
             'hash' => $hash,
             'short' => $shortHash,
-        ];
-    }
-
-    /**
-     * Parse version string into components.
-     *
-     * @param string $version
-     * @return array
-     */
-    protected function parseVersion(string $version): array
-    {
-        // Remove common prefixes
-        $cleanVersion = preg_replace('/^(v|ver|version)\s*/i', '', $version);
-
-        if (preg_match(Constants::MATCHER, $cleanVersion, $matches)) {
-            return [
-                'full' => $version,
-                'clean' => $cleanVersion,
-                'major' => $matches['major'] ?? '',
-                'minor' => $matches['minor'] ?? '',
-                'patch' => $matches['patch'] ?? '',
-                'prerelease' => $matches['prerelease'] ?? '',
-                'buildmetadata' => $matches['buildmetadata'] ?? '',
-            ];
-        }
-
-        return [
-            'full' => $version,
-            'clean' => $cleanVersion,
-            'major' => '',
-            'minor' => '',
-            'patch' => '',
-            'prerelease' => '',
-            'buildmetadata' => '',
         ];
     }
 
@@ -418,51 +178,6 @@ class LaragitVersion
 
             return 'No version available';
         }
-    }
-
-    /**
-     * Get full format string based on source type.
-     *
-     * @param array $versionParts
-     * @param array $commit
-     * @param string $source
-     * @return string
-     */
-    protected function getFullFormat(array $versionParts, array $commit, string $source): string
-    {
-        if ($source === Constants::VERSION_SOURCE_FILE) {
-            return "Version {$versionParts['clean']}";
-        }
-
-        return "Version {$versionParts['clean']} (commit {$commit['short']})";
-    }
-
-    /**
-     * Format version using custom format string.
-     *
-     * @param string $format
-     * @param array $versionParts
-     * @param array $commit
-     * @param string $branch
-     * @return string
-     */
-    protected function formatCustom(string $format, array $versionParts, array $commit, string $branch): string
-    {
-        $replacements = [
-            '{full}' => "Version {$versionParts['clean']} (commit {$commit['short']})",
-            '{compact}' => "v{$versionParts['clean']}",
-            '{version}' => $versionParts['full'],
-            '{version-only}' => $versionParts['clean'],
-            '{major}' => $versionParts['major'],
-            '{minor}' => $versionParts['minor'],
-            '{patch}' => $versionParts['patch'],
-            '{commit}' => $commit['short'],
-            '{prerelease}' => $versionParts['prerelease'],
-            '{buildmetadata}' => $versionParts['buildmetadata'],
-            '{branch}' => $branch,
-        ];
-
-        return str_replace(array_keys($replacements), array_values($replacements), $format);
     }
 
     /**

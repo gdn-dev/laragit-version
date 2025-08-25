@@ -111,6 +111,15 @@ class ServiceProvider extends IlluminateServiceProvider
      */
     protected function registerService(): void
     {
+        // Register the new classes as singletons
+        $this->app->singleton(VersionRetriever::class, function () {
+            return new VersionRetriever($this->app);
+        });
+
+        $this->app->singleton(VersionFormatter::class, function () {
+            return new VersionFormatter($this->app);
+        });
+
         $this->app->singleton('gdn-dev.laragit-version', function () {
             return new LaragitVersion($this->app);
         });
@@ -179,6 +188,10 @@ class ServiceProvider extends IlluminateServiceProvider
      */
     public function provides(): array
     {
-        return ['gdn-dev.laragit-version'];
+        return [
+            'gdn-dev.laragit-version',
+            VersionRetriever::class,
+            VersionFormatter::class,
+        ];
     }
 }
