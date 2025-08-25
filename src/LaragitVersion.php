@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
 use Symfony\Component\Process\Process;
+use Throwable;
 
 class LaragitVersion
 {
@@ -93,30 +94,33 @@ class LaragitVersion
     private function execShellDirectly($command, $path): string
     {
         $originalDir = getcwd();
-        
+
         // Validate path exists and is accessible
-        if (!is_dir($path) || !is_readable($path)) {
+        if (! is_dir($path) || ! is_readable($path)) {
             Log::error("execShellDirectly($command, $path): Path is not accessible");
+
             return '';
         }
-        
+
         // Change to the specified directory
-        if (!chdir($path)) {
+        if (! chdir($path)) {
             Log::error("execShellDirectly($command, $path): Failed to change directory");
+
             return '';
         }
-        
+
         try {
             // Execute command with error redirection
             // On Windows, we need to be more careful with command execution
             $output = shell_exec($command . ' 2>&1');
-            
+
             // Restore original directory
             chdir($originalDir);
-            
+
             // Check if the output contains error indicators
             if ($output === null || $output === false) {
                 Log::error("execShellDirectly($command, $path): Command execution failed or returned null");
+
                 return '';
             }
 
@@ -125,15 +129,17 @@ class LaragitVersion
             foreach ($errorIndicators as $indicator) {
                 if (stripos($output, $indicator) !== false) {
                     Log::warning("execShellDirectly($command, $path): Potential error in command output: " . trim($output));
+
                     return '';
                 }
             }
-            
+
             return $output ?? '';
         } catch (Throwable $e) {
             // Restore original directory even if an exception occurs
             chdir($originalDir);
             Log::error("execShellDirectly($command, $path): Exception occurred - " . $e->getMessage());
+
             return '';
         }
     }
@@ -141,28 +147,29 @@ class LaragitVersion
     protected function shell($command): string
     {
         Log::debug("Executing Git command: $command");
-        
+
         $basePath = $this->getBasePath();
         Log::debug("Using base path: $basePath");
-        
+
         // Validate base path
-        if (!is_dir($basePath) || !is_readable($basePath)) {
+        if (! is_dir($basePath) || ! is_readable($basePath)) {
             Log::error("shell($command): Base path is not accessible: $basePath");
+
             return '';
         }
-        
+
         // Check if we're in a Git repository for Git commands
-        if (str_starts_with($command, 'git') && !$this->isGitRepository()) {
+        if (str_starts_with($command, 'git') && ! $this->isGitRepository()) {
             Log::warning("shell($command): Attempting to run Git command outside of Git repository");
         }
-        
+
         $output = class_exists('\Symfony\Component\Process\Process') ?
             $this->execShellWithProcess($command, $basePath) :
             $this->execShellDirectly($command, $basePath);
-        
+
         $cleanOutput = $this->cleanOutput($output);
         Log::debug("Command output: " . ($cleanOutput ?: '[empty]'));
-        
+
         return $cleanOutput;
     }
 
@@ -481,24 +488,24 @@ class LaragitVersion
         if (function_exists('shell_exec')) {
             // Use a simple command that should work on all systems
             $output = shell_exec('git --version 2>&1');
-            
+
             // On Windows, shell_exec might return null or false even when the command works
             if ($output === null || $output === false) {
                 // Try alternative method
                 $output = $this->execShellDirectly($this->commands->checkGitAvailable(), $this->getBasePath());
             }
-            
-            if (!empty($output) && str_contains($output, 'git version')) {
+
+            if (! empty($output) && str_contains($output, 'git version')) {
                 return true;
             }
         }
-        
+
         // Fallback to Symfony Process if available
         if (class_exists('\Symfony\Component\Process\Process')) {
             try {
                 $process = Process::fromShellCommandline($this->commands->checkGitAvailable(), $this->getBasePath());
                 $process->run();
-                
+
                 if ($process->isSuccessful() && str_contains($process->getOutput(), 'git version')) {
                     return true;
                 }
@@ -506,9 +513,10 @@ class LaragitVersion
                 Log::warning("isGitAvailable(): Symfony Process failed - " . $e->getMessage());
             }
         }
-        
+
         // If we reach here, Git is not available or not accessible
         Log::warning("isGitAvailable(): Git is not available or not in system PATH");
+
         return false;
     }
 
