@@ -4,10 +4,7 @@ namespace GenialDigitalNusantara\LaragitVersion\Traits;
 
 use GenialDigitalNusantara\LaragitVersion\Exceptions\TagNotFound;
 use GenialDigitalNusantara\LaragitVersion\Helper\Constants;
-use GenialDigitalNusantara\LaragitVersion\Helper\FileCommands;
-use GenialDigitalNusantara\LaragitVersion\Helper\GitCommands;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 
 trait VersionSourceTrait
 {

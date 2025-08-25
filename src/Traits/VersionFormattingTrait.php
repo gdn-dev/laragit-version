@@ -3,7 +3,6 @@
 namespace GenialDigitalNusantara\LaragitVersion\Traits;
 
 use GenialDigitalNusantara\LaragitVersion\Helper\Constants;
-use Illuminate\Support\Facades\Log;
 
 trait VersionFormattingTrait
 {
