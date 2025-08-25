@@ -95,7 +95,7 @@ class ServiceProvider extends IlluminateServiceProvider
     protected function registerBladeDirective(): void
     {
         $directiveName = config('version.blade_directive', Constants::DEFAULT_BLADE_DIRECTIVE);
-        
+
         Blade::directive($directiveName, function ($format = null) {
             $formatString = $format ? $format : "'" . Constants::DEFAULT_FORMAT . "'";
 

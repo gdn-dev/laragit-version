@@ -1,16 +1,17 @@
 <?php
 
 use GenialDigitalNusantara\LaragitVersion\LaragitVersion;
-use Illuminate\Container\Container;
 use Illuminate\Config\Repository;
+use Illuminate\Container\Container;
 
 it('tests execShellDirectly method structure', function () {
     $container = new Container();
     $config = new Repository([]);
     $container->instance('config', $config);
 
-    $laragitVersion = new class($container) extends LaragitVersion {
-        public function getBasePath(): string {
+    $laragitVersion = new class ($container) extends LaragitVersion {
+        public function getBasePath(): string
+        {
             return '/test/path';
         }
     };
@@ -30,8 +31,9 @@ it('tests execShellWithProcess method structure', function () {
     $config = new Repository([]);
     $container->instance('config', $config);
 
-    $laragitVersion = new class($container) extends LaragitVersion {
-        public function getBasePath(): string {
+    $laragitVersion = new class ($container) extends LaragitVersion {
+        public function getBasePath(): string
+        {
             return '/test/path';
         }
     };
@@ -51,8 +53,9 @@ it('tests shell method structure', function () {
     $config = new Repository([]);
     $container->instance('config', $config);
 
-    $laragitVersion = new class($container) extends LaragitVersion {
-        public function getBasePath(): string {
+    $laragitVersion = new class ($container) extends LaragitVersion {
+        public function getBasePath(): string
+        {
             return '/test/path';
         }
     };

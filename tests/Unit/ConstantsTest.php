@@ -78,7 +78,7 @@ it('handles invalid version formats gracefully', function () {
 
 it('gets all format constants', function () {
     $formats = Constants::getAllFormats();
-    
+
     expect($formats)->toBeArray();
     expect($formats)->toHaveKey('full');
     expect($formats)->toHaveKey('compact');
@@ -93,7 +93,7 @@ it('gets all format constants', function () {
 
 it('gets all version source constants', function () {
     $sources = Constants::getAllVersionSources();
-    
+
     expect($sources)->toBeArray();
     expect($sources)->toHaveKey('git-local');
     expect($sources)->toHaveKey('git-remote');
@@ -111,7 +111,7 @@ it('validates format correctly', function () {
     expect(Constants::isValidFormat('major'))->toBeTrue();
     expect(Constants::isValidFormat('minor'))->toBeTrue();
     expect(Constants::isValidFormat('patch'))->toBeTrue();
-    
+
     expect(Constants::isValidFormat('invalid'))->toBeFalse();
     expect(Constants::isValidFormat('unknown'))->toBeFalse();
     expect(Constants::isValidFormat(''))->toBeFalse();
@@ -121,7 +121,7 @@ it('validates version source correctly', function () {
     expect(Constants::isValidVersionSource('git-local'))->toBeTrue();
     expect(Constants::isValidVersionSource('git-remote'))->toBeTrue();
     expect(Constants::isValidVersionSource('file'))->toBeTrue();
-    
+
     expect(Constants::isValidVersionSource('invalid'))->toBeFalse();
     expect(Constants::isValidVersionSource('unknown'))->toBeFalse();
     expect(Constants::isValidVersionSource(''))->toBeFalse();
@@ -129,7 +129,7 @@ it('validates version source correctly', function () {
 
 it('gets cache keys', function () {
     $cacheKeys = Constants::getCacheKeys();
-    
+
     expect($cacheKeys)->toBeArray();
     expect($cacheKeys)->toHaveKey('version');
     expect($cacheKeys)->toHaveKey('commit');
@@ -150,7 +150,7 @@ it('validates version format using matcher', function () {
     foreach ($validVersions as $version) {
         expect(Constants::isValidVersionFormat($version))->toBeTrue("Version '$version' should be valid");
     }
-    
+
     $invalidVersions = [
         'invalid',
         '1.x.0',

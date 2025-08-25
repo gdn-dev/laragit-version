@@ -108,6 +108,7 @@ class Constants
     public static function isValidFormat(string $format): bool
     {
         $validFormats = array_values(self::getAllFormats());
+
         return in_array($format, $validFormats, true);
     }
 
@@ -120,6 +121,7 @@ class Constants
     public static function isValidVersionSource(string $source): bool
     {
         $validSources = array_values(self::getAllVersionSources());
+
         return in_array($source, $validSources, true);
     }
 

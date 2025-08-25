@@ -56,12 +56,12 @@ it('provides tag checking commands', function () {
 
 it('provides current version on local command', function () {
     $gitCommands = new GitCommands();
-    
+
     // Use reflection to test protected method
     $reflection = new ReflectionClass($gitCommands);
     $method = $reflection->getMethod('getCurrentVersionOnLocal');
     $method->setAccessible(true);
-    
+
     $command = $method->invoke($gitCommands);
     expect($command)->toBeString();
     expect($command)->toContain('git describe --tags');
@@ -76,12 +76,12 @@ it('provides commit on local command', function () {
 
 it('provides selected commit on local command', function () {
     $gitCommands = new GitCommands();
-    
+
     // Use reflection to test protected method
     $reflection = new ReflectionClass($gitCommands);
     $method = $reflection->getMethod('getSelectedCommitOnLocal');
     $method->setAccessible(true);
-    
+
     $commit = 'abc123';
     $command = $method->invoke($gitCommands, $commit);
     expect($command)->toBeString();
@@ -100,12 +100,12 @@ it('provides remote repository validation command', function () {
 
 it('provides all commit on remote command', function () {
     $gitCommands = new GitCommands();
-    
+
     // Use reflection to test protected method
     $reflection = new ReflectionClass($gitCommands);
     $method = $reflection->getMethod('getAllCommitOnRemote');
     $method->setAccessible(true);
-    
+
     $repository = 'https://github.com/example/repo.git';
     $command = $method->invoke($gitCommands, $repository);
     expect($command)->toBeString();
@@ -115,12 +115,12 @@ it('provides all commit on remote command', function () {
 
 it('provides current commit on remote command', function () {
     $gitCommands = new GitCommands();
-    
+
     // Use reflection to test protected method
     $reflection = new ReflectionClass($gitCommands);
     $method = $reflection->getMethod('getCurrentCommitOnRemote');
     $method->setAccessible(true);
-    
+
     $repository = 'https://github.com/example/repo.git';
     $command = $method->invoke($gitCommands, $repository);
     expect($command)->toBeString();
@@ -150,15 +150,15 @@ it('provides latest version on remote command', function () {
 
 it('handles empty repository URL in remote operations', function () {
     $gitCommands = new GitCommands();
-    
+
     $command = $gitCommands->validateRemoteRepository('');
     expect($command)->toBeString();
     expect($command)->toContain('git ls-remote --exit-code');
-    
+
     $command = $gitCommands->getLatestCommitOnRemote('');
     expect($command)->toBeString();
     expect($command)->toContain('git ls-remote');
-    
+
     $command = $gitCommands->getLatestVersionOnRemote('');
     expect($command)->toBeString();
     expect($command)->toContain('git ls-remote');
@@ -167,11 +167,11 @@ it('handles empty repository URL in remote operations', function () {
 
 it('generates proper git commands with error handling', function () {
     $gitCommands = new GitCommands();
-    
+
     // Test commands that include error redirection
     $latestVersionCommand = $gitCommands->getLatestVersionOnLocal();
     expect($latestVersionCommand)->toContain('2>/dev/null');
-    
+
     // Test tag counting command
     $hasTagsCommand = $gitCommands->hasAnyTags();
     expect($hasTagsCommand)->toContain('wc -l');
@@ -179,7 +179,7 @@ it('generates proper git commands with error handling', function () {
 
 it('provides git commands for different scenarios', function () {
     $gitCommands = new GitCommands();
-    
+
     // Test all public methods return non-empty strings
     expect($gitCommands->checkGitRepository())->toBeString()->not->toBeEmpty();
     expect($gitCommands->checkGitAvailable())->toBeString()->not->toBeEmpty();
@@ -189,7 +189,7 @@ it('provides git commands for different scenarios', function () {
     expect($gitCommands->getAllTags())->toBeString()->not->toBeEmpty();
     expect($gitCommands->hasAnyTags())->toBeString()->not->toBeEmpty();
     expect($gitCommands->getCurrentBranch())->toBeString()->not->toBeEmpty();
-    
+
     $repo = 'https://example.com/repo.git';
     expect($gitCommands->getLatestCommitOnRemote($repo))->toBeString()->not->toBeEmpty();
     expect($gitCommands->getLatestVersionOnRemote($repo))->toBeString()->not->toBeEmpty();
