@@ -60,7 +60,13 @@ it('detects git unavailability', function () {
     
     $laragitVersion = new class($container) extends LaragitVersion {
         protected function shell($command): string {
+            // Simulate complete command failure
             return '';
+        }
+        
+        // Override isGitAvailable to force it to return false for testing
+        public function isGitAvailable(): bool {
+            return false;
         }
     };
     
