@@ -68,6 +68,26 @@ trait VersionSourceTrait
     }
 
     /**
+     * Determine if file source should be used automatically.
+     *
+     * @return bool
+     */
+    protected function shouldUseFileSource(): bool
+    {
+        // If explicitly set to file source, use it
+        $configuredSource = $this->config->get('version.source');
+        if ($configuredSource === Constants::VERSION_SOURCE_FILE) {
+            return true;
+        }
+
+        // If VERSION file exists, automatically use file source
+        $fileName = $this->config->get('version.version_file', Constants::DEFAULT_VERSION_FILE);
+        $filePath = $this->fileCommands->getVersionFilePath($this->getBasePath(), $fileName);
+        
+        return $this->fileCommands->fileExists($filePath);
+    }
+
+    /**
      * Get the current version from Git tags or file.
      *
      * @return string
@@ -81,10 +101,12 @@ trait VersionSourceTrait
             return Cache::get($cacheKey);
         }
 
+        // Check if we should automatically use file source
+        $useFileSource = $this->shouldUseFileSource();
         $source = $this->config->get('version.source');
 
-        // For file source, skip Git validation
-        if ($source === Constants::VERSION_SOURCE_FILE) {
+        // For file source (configured or auto-detected), skip Git validation
+        if ($useFileSource) {
             $version = $this->getVersion();
         } else {
             // Validate Git availability and repository for Git sources
