@@ -1,7 +1,6 @@
 <?php
 
 use GenialDigitalNusantara\LaragitVersion\Facade;
-use GenialDigitalNusantara\LaragitVersion\LaragitVersion;
 use Illuminate\Support\Facades\Facade as IlluminateFacade;
 
 it('has the getFacadeAccessor method', function () {
@@ -15,7 +14,7 @@ it('has the correct facade accessor name', function () {
     $reflection = new ReflectionClass(Facade::class);
     $method = $reflection->getMethod('getFacadeAccessor');
     $method->setAccessible(true);
-    
+
     // Test that the method is protected
     expect($method->isProtected())->toBeTrue();
 });
@@ -25,13 +24,13 @@ it('returns the correct facade accessor via reflection', function () {
     $reflection = new ReflectionClass(Facade::class);
     $method = $reflection->getMethod('getFacadeAccessor');
     $method->setAccessible(true);
-    
+
     // Create a new instance of the facade
     $facade = new Facade();
-    
+
     // Call the protected method
     $accessor = $method->invoke($facade);
-    
+
     expect($accessor)->toBeString();
     expect($accessor)->toBe('gdn-dev.laragit-version');
 });

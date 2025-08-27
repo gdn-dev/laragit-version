@@ -19,6 +19,7 @@ class ServiceProvider extends IlluminateServiceProvider
             if ($format) {
                 return "<?php echo app('gdn-dev.laragit-version')->show({$format}); ?>";
             }
+
             return "<?php echo app('gdn-dev.laragit-version')->show(); ?>";
         });
     }

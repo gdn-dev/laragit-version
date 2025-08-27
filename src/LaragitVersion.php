@@ -12,11 +12,11 @@ class LaragitVersion
     public function show(?string $format = null): string
     {
         $version = $this->getCurrentVersion();
-        
+
         if ($format === 'compact') {
             return "v{$version}";
         }
-        
+
         return "Version {$version}";
     }
 
@@ -30,14 +30,14 @@ class LaragitVersion
         // Simple implementation like the user's custom solution
         $basePath = $this->getBasePath();
         $versionFile = $basePath . DIRECTORY_SEPARATOR . 'VERSION';
-        
+
         if (file_exists($versionFile)) {
             return trim(file_get_contents($versionFile));
         }
-        
+
         // Try to get version from Git
         $version = trim(@exec('git describe --tags --abbrev=0'));
-        
+
         // Return a default if no version found
         return $version ?: '0.0.0';
     }
@@ -50,7 +50,7 @@ class LaragitVersion
     public function getVersionInfo(): array
     {
         $version = $this->getCurrentVersion();
-        
+
         return [
             'version' => $version,
             'formatted' => $this->show(),
@@ -66,9 +66,10 @@ class LaragitVersion
     public function isGitAvailable(): bool
     {
         $output = trim(@exec('git --version'));
-        return !empty($output) && strpos($output, 'git version') !== false;
+
+        return ! empty($output) && strpos($output, 'git version') !== false;
     }
-    
+
     /**
      * Get the base path for the application.
      *
