@@ -1,9 +1,12 @@
 {
     "name": "gdn-dev/laragit-version",
-    "description": "Effortless manage versions in your Laravel project. No configuration required.",
+    "description": "Simple Laravel package to manage versions using VERSION files or Git tags",
     "keywords": [
-        "Genial Digital Nusantara",
-        "laragit-version"
+        "laravel",
+        "version",
+        "git",
+        "versioning",
+        "simple"
     ],
     "homepage": "https://github.com/gdn-dev/laragit-version",
     "license": "MIT",
