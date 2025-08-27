@@ -1,6 +1,7 @@
 {
     "name": "gdn-dev/laragit-version",
     "description": "Simple Laravel package to manage versions using VERSION files or Git tags",
+    "version": "1.0.0",
     "keywords": [
         "laravel",
         "version",
