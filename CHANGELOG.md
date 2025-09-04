@@ -2,6 +2,20 @@
 
 All notable changes to `laragit-version` will be documented in this file.
 
+## v1.0.2 - 2025-09-04
+
+### 🐛 Fixed
+
+- **Base Path Resolution**: Fixed VERSION file detection in Laravel applications by properly injecting the Laravel application instance
+- **Path Detection**: Enhanced base path resolution to use Laravel's `basePath()` method when available
+- **Service Provider**: Updated service provider to pass the application instance to the LaragitVersion class
+- **Constructor Flexibility**: Made the constructor more flexible to accept any object with a `basePath()` method
+
+### 📊 Test Coverage
+
+- Added `VersionFileDetectionTest` to verify VERSION file detection in Laravel applications
+- Enhanced service provider unit tests with proper mocking
+
 ## v1.0.1 - 2025-09-04
 
 ### Changelog
@@ -67,6 +81,7 @@ This is the first stable release of the LaraGit Version package, featuring a sim
 composer require gdn-dev/laragit-version
 
 
+
 ```
 ### 📖 Usage
 
@@ -76,6 +91,7 @@ $version = LaragitVersion::show();
 
 // In Blade templates
 @laragitVersion
+
 
 
 ```
