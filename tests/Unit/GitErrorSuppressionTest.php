@@ -1,25 +1,43 @@
 <?php
 
+namespace Tests\Unit;
+
 use GenialDigitalNusantara\LaragitVersion\LaragitVersion;
+use PHPUnit\Framework\TestCase;
+
+uses(TestCase::class);
+
+class MockLaragitVersion extends LaragitVersion
+{
+    private bool $gitAvailable;
+
+    public function __construct(bool $gitAvailable = false)
+    {
+        parent::__construct();
+        $this->gitAvailable = $gitAvailable;
+    }
+
+    public function isGitAvailable(): bool
+    {
+        return $this->gitAvailable;
+    }
+
+    protected function getBasePath(): string
+    {
+        // Return a temporary directory that doesn't have Git
+        return sys_get_temp_dir() . '/laragit_test_' . uniqid();
+    }
+}
 
 it('does not produce git errors when git is not available', function () {
-    // Create a temporary directory without Git
-    $tempDir = sys_get_temp_dir() . '/laragit_test_' . uniqid();
-    mkdir($tempDir);
-
-    // Set the base path to our temp directory
-    define('BASE_PATH', $tempDir);
-
-    $version = new LaragitVersion();
+    // Create a mock version instance where Git is not available
+    $version = new MockLaragitVersion(false);
 
     // This should not produce any Git errors
     $result = $version->getCurrentVersion();
 
     // Should return default version
     expect($result)->toBe('0.0.0');
-
-    // Clean up
-    rmdir($tempDir);
 });
 
 it('checks git availability correctly', function () {
