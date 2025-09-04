@@ -2,6 +2,13 @@
 
 All notable changes to `laragit-version` will be documented in this file.
 
+## v1.0.3 - 2025-09-04
+
+### 🐛 Fixed
+
+- **Test Suite**: Fixed `GitErrorSuppressionTest` to properly simulate Git unavailability in GitHub workflows
+- **Test Reliability**: Enhanced test mocking to ensure consistent behavior across different environments
+
 ## v1.0.2 - 2025-09-04
 
 ### 🐛 Fixed
@@ -82,6 +89,7 @@ composer require gdn-dev/laragit-version
 
 
 
+
 ```
 ### 📖 Usage
 
@@ -91,6 +99,7 @@ $version = LaragitVersion::show();
 
 // In Blade templates
 @laragitVersion
+
 
 
 
