@@ -2,6 +2,31 @@
 
 All notable changes to `laragit-version` will be documented in this file.
 
+## v1.0.1 - 2025-09-04
+
+### Changelog
+
+All notable changes to this project will be documented in this file.
+
+#### v1.0.1 - 2025-09-04
+
+##### 🐛 Fixed
+
+- **Git Error Suppression**: Eliminated "fatal: not a git repository" error logs when deployed to servers without Git repositories
+- **Git Availability Checking**: Added proper Git availability detection before executing Git commands
+- **Error Output Redirection**: Redirected stderr to `/dev/null` to prevent Git error logs
+- **Graceful Fallback**: Ensured the package gracefully falls back to default version when Git is not available
+
+##### 📊 Test Coverage
+
+- Added `GitErrorSuppressionTest` to verify no Git errors are produced
+- Added tests for Git availability detection
+
+
+---
+
+**Full Changelog**: https://github.com/gdn-dev/laragit-version/compare/v1.0.0...1.0.1
+
 ## v1.0.0 - 2025-08-27
 
 ### 🎉 Initial Stable Release
@@ -41,6 +66,7 @@ This is the first stable release of the LaraGit Version package, featuring a sim
 ```bash
 composer require gdn-dev/laragit-version
 
+
 ```
 ### 📖 Usage
 
@@ -50,6 +76,7 @@ $version = LaragitVersion::show();
 
 // In Blade templates
 @laragitVersion
+
 
 ```
 ### 📋 Changelog
