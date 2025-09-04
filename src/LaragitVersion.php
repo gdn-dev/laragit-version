@@ -2,8 +2,28 @@
 
 namespace GenialDigitalNusantara\LaragitVersion;
 
+use Illuminate\Contracts\Foundation\Application;
+
 class LaragitVersion
 {
+    /**
+     * The Laravel application instance.
+     *
+     * @var \Illuminate\Contracts\Foundation\Application|object|null
+     */
+    protected $app = null;
+
+    /**
+     * Create a new LaragitVersion instance.
+     *
+     * @param  \Illuminate\Contracts\Foundation\Application|object|null  $app
+     * @return void
+     */
+    public function __construct($app = null)
+    {
+        $this->app = $app;
+    }
+
     /**
      * Get the current version using a simple approach.
      *
@@ -83,8 +103,12 @@ class LaragitVersion
      */
     protected function getBasePath(): string
     {
-        // In a Laravel application, this would be the base path
-        // For testing, we'll use a reasonable default
+        // In a Laravel application, use the app's base path
+        if ($this->app && method_exists($this->app, 'basePath')) {
+            return $this->app->basePath();
+        }
+
+        // For testing or non-Laravel environments, use a reasonable default
         return defined('BASE_PATH') ? BASE_PATH : getcwd();
     }
 }

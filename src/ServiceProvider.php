@@ -32,8 +32,8 @@ class ServiceProvider extends IlluminateServiceProvider
     public function register(): void
     {
         // Register the service
-        $this->app->singleton('gdn-dev.laragit-version', function () {
-            return new LaragitVersion();
+        $this->app->singleton('gdn-dev.laragit-version', function ($app) {
+            return new LaragitVersion($app);
         });
     }
 }
