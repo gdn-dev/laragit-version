@@ -11,6 +11,7 @@ A simple Laravel package to manage versions in your project using either VERSION
 - 🚀 **Zero Configuration** - Works out of the box
 - 📄 **VERSION File Support** - Read version from VERSION files
 - 🎯 **Git Integration** - Uses your existing Git tags as fallback
+- 🤐 **Silent Git Errors** - No error logs when Git is not available
 - 🔧 **Blade Directive** - Easy template integration
 - 📱 **Laravel 9-12** - Supports Laravel 9, 10, 11, and 12
 
@@ -89,13 +90,17 @@ The package uses a simple approach:
 ```php
 'version' => file_exists(base_path('VERSION')) 
     ? trim(file_get_contents(base_path('VERSION')))
-    : trim(exec('git describe --tags --abbrev=0'))
+    : (isGitAvailable() 
+        ? trim(exec('git describe --tags --abbrev=0 2>/dev/null'))
+        : '0.0.0')
 ```
 
 1. First checks for a VERSION file in your project root
 2. If found, uses the content as the version
-3. If not found, tries to get the version from Git tags
-4. If neither works, returns "0.0.0" as default
+3. If not found, checks if Git is available
+4. If Git is available, tries to get the version from Git tags
+5. If Git is not available or no tags found, returns "0.0.0" as default
+6. Never produces error logs when Git is not available
 
 ## 📄 License
 

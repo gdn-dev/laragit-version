@@ -35,11 +35,16 @@ class LaragitVersion
             return trim(file_get_contents($versionFile));
         }
 
-        // Try to get version from Git
-        $version = trim(@exec('git describe --tags --abbrev=0'));
+        // Only try Git if it's available
+        if ($this->isGitAvailable()) {
+            $version = trim(@exec('git describe --tags --abbrev=0 2>/dev/null'));
+            if (!empty($version)) {
+                return $version;
+            }
+        }
 
         // Return a default if no version found
-        return $version ?: '0.0.0';
+        return '0.0.0';
     }
 
     /**
@@ -65,7 +70,8 @@ class LaragitVersion
      */
     public function isGitAvailable(): bool
     {
-        $output = trim(@exec('git --version'));
+        // Suppress errors and redirect stderr to prevent logs
+        $output = trim(@exec('git --version 2>/dev/null'));
 
         return ! empty($output) && strpos($output, 'git version') !== false;
     }
